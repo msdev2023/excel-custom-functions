@@ -36,7 +36,7 @@ async function getStockPrice(symbol, year, month) {
     const items = json["data"]["item"];
     for (let index = items.length - 1; index >= 0; index--){
       let date = new Date(items[index][0]);
-      if (date.getFullYear() === year && date.getMonth() === month) {
+      if (date.getFullYear() === year && date.getMonth() === month - 1) {
         return items[index][5];
       }
     }
