@@ -1,0 +1,24 @@
+name: Run weibo-gh-issues
+
+on:
+  schedule:
+    - cron: '0 10,18 * * *'
+  watch:
+    types: [started]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@master
+    - name: Install requirements
+      run: |
+        pip install -r requirements
+    - name: Run gh-issues
+      env:
+        WEIBO_ID: ${{ secrets.WEIBO_ID }}
+        WEIBO_COOKIE: ${{ secrets.WEIBO_COOKIE }}
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        python run.py
