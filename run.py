@@ -1,15 +1,23 @@
+import logging
 import os
+import traceback
 from datetime import datetime
 
 import requests
-from ghapi.all import GhApi
+
+formatter = logging.Formatter(
+    "[%(asctime)s] %(funcName)s:%(lineno)d %(levelname)s %(message)s"
+)
+handler = logging.StreamHandler()
+handler.setFormatter(formatter)
+logger = logging.getLogger(__name__)
+logger.addHandler(handler)
+logger.setLevel(logging.INFO)
 
 WEIBO_UID = os.environ.get("WEIBO_UID")
 WEIBO_COOKIE = os.environ.get("WEIBO_COOKIE")
-LATEST_TIMESTAMP = os.environ.get("WEIBO_LATEST_TIMESTAMP")
 GITHUB_TOKEN = os.environ.get("GH_TOKEN")
-GITHUB_OWNER, GITHUB_REPO = os.environ.get("GITHUB_REPOSITORY").split("/")
-api = GhApi(owner=GITHUB_OWNER, repo=GITHUB_REPO, token=GITHUB_TOKEN)
+GITHUB_REPOSITORY = os.environ.get("GITHUB_REPOSITORY")
 
 session = requests.Session()
 session.headers.update(
@@ -39,23 +47,31 @@ for cookie in WEIBO_COOKIE.split():
 def start_request(uid, ts=None):
     url = f"https://weibo.com/ajax/statuses/mymblog?uid={uid}&page=1"
     resp = session.get(url)
+    logger.info(resp.status_code)
     data = resp.json()
     tweets = data["data"]["list"]
 
+    latest_timestamp = None
     for tweet in tweets:
         try:
             content, created_at = parse_tweet(uid, tweet)
-        except Exception as e:
-            print(e)
+        except:
+            logger.error(traceback.print_exc())
             continue
 
         if ts and created_at <= ts:
             break
 
         try:
-            api.issues.create(GITHUB_OWNER, GITHUB_REPO, content[:16], content)
-        except Exception as e:
-            print(e)
+            gh_create_issue(content[:16], content)
+        except:
+            logger.error(traceback.print_exc())
+            continue
+
+        if latest_timestamp is None or latest_timestamp < created_at:
+            latest_timestamp = created_at
+
+    return latest_timestamp
 
 
 def parse_time(s):
@@ -77,8 +93,8 @@ def parse_tweet(uid, tweet):
         try:
             long_url = f"https://weibo.com/ajax/statuses/longtext?id={mblogid}"
             content = retrieve_long_tweet(long_url)
-        except Exception as e:
-            print(e)
+        except:
+            logger.error(traceback.print_exc())
 
     content = content.replace("\u200b", "")
     pic_urls = [
@@ -92,9 +108,68 @@ def parse_tweet(uid, tweet):
 
 def retrieve_long_tweet(url):
     resp = session.get(url)
+    logger.info(resp.status_code)
     data = resp.json()
     return data["data"]["longTextContent"]
 
 
+def gh_create_issue(title, body):
+    url = f"https://api.github.com/repos/{GITHUB_REPOSITORY}/issues"
+    headers = {
+        "Accept": "application/vnd.github+json",
+        "Authorization": f"Bearer {GITHUB_TOKEN}",
+        "X-GitHub-Api-Version": "2022-11-28",
+    }
+    data = {
+        "title": title,
+        "body": body,
+    }
+    resp = requests.post(url, data=data, headers=headers)
+    logger.info(resp.status_code)
+
+
+def gh_get_latest_timestamp():
+    url = f"https://api.github.com/repos/{GITHUB_REPOSITORY}/actions/variables/WEIBO_LATEST_TIMESTAMP"
+    headers = {
+        "Accept": "application/vnd.github+json",
+        "Authorization": f"Bearer {GITHUB_TOKEN}",
+        "X-GitHub-Api-Version": "2022-11-28",
+    }
+    resp = requests.get(url, headers=headers)
+    logger.info(resp.status_code)
+    return resp.json()["value"]
+
+
+def gh_update_latest_timestamp(ts):
+    url = f"https://api.github.com/repos/{GITHUB_REPOSITORY}/actions/variables/WEIBO_LATEST_TIMESTAMP"
+    headers = {
+        "Accept": "application/vnd.github+json",
+        "Authorization": f"Bearer {GITHUB_TOKEN}",
+        "X-GitHub-Api-Version": "2022-11-28",
+    }
+    data = {
+        "name": "WEIBO_LATEST_TIMESTAMP",
+        "value": ts,
+    }
+    resp = requests.patch(url, data=data, headers=headers)
+    logger.info(resp.status_code)
+
+
+def main():
+    ts = None
+    try:
+        ts = gh_get_latest_timestamp()
+        ts = int(ts)
+    except:
+        logger.error(traceback.print_exc())
+
+    latest_ts = start_request(WEIBO_UID, ts=ts)
+
+    try:
+        gh_update_latest_timestamp(latest_ts)
+    except:
+        logger.error(traceback.print_exc())
+
+
 if __name__ == "__main__":
-    start_request(WEIBO_UID)
+    main()
