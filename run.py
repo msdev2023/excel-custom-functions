@@ -1,3 +1,4 @@
+import json
 import logging
 import os
 import traceback
@@ -127,7 +128,7 @@ def gh_create_issue(title, body):
         "title": title,
         "body": body,
     }
-    resp = requests.post(url, data=data, headers=headers)
+    resp = requests.post(url, data=json.dumps(data), headers=headers)
     logger.info(resp.status_code)
 
 
@@ -154,7 +155,7 @@ def gh_update_latest_timestamp(ts):
         "name": "WEIBO_LATEST_TIMESTAMP",
         "value": ts,
     }
-    resp = requests.patch(url, data=data, headers=headers)
+    resp = requests.patch(url, data=json.dumps(data), headers=headers)
     logger.info(resp.status_code)
 
 
