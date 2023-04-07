@@ -44,7 +44,7 @@ def start_request(uid, ts=None):
 
     for tweet in tweets:
         try:
-            content, created_at = parse_tweet(uid, tweet, ts)
+            content, created_at = parse_tweet(uid, tweet)
         except Exception as e:
             print(e)
             continue
