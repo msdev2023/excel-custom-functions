@@ -19,6 +19,6 @@ jobs:
       env:
         WEIBO_UID: ${{ secrets.WEIBO_UID }}
         WEIBO_COOKIE: ${{ secrets.WEIBO_COOKIE }}
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
       run: |
         python run.py

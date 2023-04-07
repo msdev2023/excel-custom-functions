@@ -16,7 +16,7 @@ logger.setLevel(logging.INFO)
 
 WEIBO_UID = os.environ.get("WEIBO_UID")
 WEIBO_COOKIE = os.environ.get("WEIBO_COOKIE")
-GITHUB_TOKEN = os.environ.get("GH_TOKEN")
+GITHUB_TOKEN = os.environ.get("GITHUB_TOKEN")
 GITHUB_REPOSITORY = os.environ.get("GITHUB_REPOSITORY")
 
 session = requests.Session()
@@ -61,6 +61,9 @@ def start_request(uid, ts=None):
 
         if ts and created_at <= ts:
             break
+
+        if not content:
+            continue
 
         try:
             gh_create_issue(content[:16], content)
