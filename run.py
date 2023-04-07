@@ -153,7 +153,7 @@ def gh_update_latest_timestamp(ts):
     }
     data = {
         "name": "WEIBO_LATEST_TIMESTAMP",
-        "value": ts,
+        "value": str(ts),
     }
     resp = requests.patch(url, data=json.dumps(data), headers=headers)
     logger.info(resp.status_code)
