@@ -50,6 +50,7 @@ def start_request(uid, ts=None):
     resp = session.get(url)
     logger.info(resp.status_code)
     data = resp.json()
+    logger.info(data)
     tweets = data["data"]["list"]
 
     latest_timestamp = None
