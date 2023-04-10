@@ -2,7 +2,7 @@ name: Run weibo-gh-issues
 
 on:
   schedule:
-    - cron: '0 10,18 * * *'
+    - cron: '0 10,22 * * *'
   watch:
     types: [started]
 
