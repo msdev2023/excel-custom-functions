@@ -101,6 +101,7 @@ class HeadlessWeibo:
         )
 
     def use_cookies(self, cookies):
+        self.driver.get("https://weibo.com")
         self.driver.delete_all_cookies()
 
         for cookie in cookies:
