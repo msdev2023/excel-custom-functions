@@ -17,8 +17,9 @@ jobs:
         pip install -r requirements.txt
     - name: Run gh-issues
       env:
-        WEIBO_UID: ${{ secrets.WEIBO_UID }}
-        WEIBO_COOKIE: ${{ secrets.WEIBO_COOKIE }}
+        WEIBO_UID: ${{ vars.WEIBO_UID }}
+        WEIBO_COOKIES: ${{ vars.WEIBO_COOKIES }}
+        WEIBO_LATEST_TIMESTAMP: ${{ vars.WEIBO_LATEST_TIMESTAMP }}
         GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
       run: |
         python run.py
