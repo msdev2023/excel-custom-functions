@@ -122,6 +122,7 @@ class HeadlessWeibo:
         )
         resp = self.session.get(url)
         logger.info(resp.status_code)
+        logger.info(resp.content)
         data = resp.json()
         tweets = data["data"]["list"]
 
