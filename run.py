@@ -113,6 +113,7 @@ class HeadlessWeibo:
         return cookies
 
     def start_request(self, gh_api, uid, ts=None):
+        logger.info(self.session.cookies.items())
         url = f"https://weibo.com/ajax/statuses/mymblog?uid={uid}&page=1"
         self.session.headers.update(
             {
